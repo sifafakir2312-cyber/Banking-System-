@@ -1,0 +1,146 @@
+import openpyxl
+import os
+
+file = "banking_system.xlsx"
+
+
+def find_account(ac):
+    wb = openpyxl.load_workbook(file)
+    ws = wb.active
+
+    for row in range(2, ws.max_row + 1):
+        if ws.cell(row, 1).value == ac:
+            return row
+    return 0
+
+
+def verify_pin(row):
+    wb = openpyxl.load_workbook(file)
+    ws = wb.active
+
+    pin = input("Enter 4-digit PIN: ")
+
+    if ws.cell(row, 4).value == pin:
+        return True
+    else:
+        print("Incorrect PIN")
+        return False
+
+
+def create_account():
+    wb = openpyxl.load_workbook(file)
+    ws = wb.active
+
+    name = input("Enter your name: ")
+    mobile = input("Enter mobile number: ")
+    pin = input("Enter 4-digit PIN: ")
+    money = float(input("Enter initial deposit: "))
+
+    ac = 1000 + ws.max_row
+
+    ws.append([ac, name, mobile, pin, money])
+    wb.save(file)
+
+    print("Account created successfully!")
+    print("Your account number:", ac)
+
+
+def deposit_money():
+    ac = int(input("Enter account number: "))
+    row = find_account(ac)
+
+    if row == 0:
+        print("Account not found")
+    elif verify_pin(row):
+        money = float(input("Enter money to deposit: "))
+
+        wb = openpyxl.load_workbook(file)
+        ws = wb.active
+
+        ws.cell(row, 5).value += money
+        wb.save(file)
+
+        print("Money deposited successfully!")
+        print("Updated balance:", ws.cell(row, 5).value)
+
+
+def withdraw_money():
+    ac = int(input("Enter account number: "))
+    row = find_account(ac)
+
+    if row == 0:
+        print("Account not found")
+    elif verify_pin(row):
+        money = float(input("Enter money to withdraw: "))
+
+        wb = openpyxl.load_workbook(file)
+        ws = wb.active
+
+        if money <= ws.cell(row, 5).value:
+            ws.cell(row, 5).value -= money
+            wb.save(file)
+
+            print("Money withdrawn successfully!")
+            print("Updated balance:", ws.cell(row, 5).value)
+        else:
+            print("Insufficient balance")
+
+
+def check_balance():
+    ac = int(input("Enter account number: "))
+    row = find_account(ac)
+
+    if row == 0:
+        print("Account not found")
+    elif verify_pin(row):
+        wb = openpyxl.load_workbook(file)
+        ws = wb.active
+
+        print("Account Number:", ws.cell(row, 1).value)
+        print("Account Holder Name:", ws.cell(row, 2).value)
+        print("Current Balance:", ws.cell(row, 5).value)
+
+
+def main():
+
+    if not os.path.exists(file):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+
+        ws.append(["Account Number", "Name",
+                   "Mobile Number", "PIN", "Balance"])
+
+        wb.save(file)
+
+    while True:
+
+        print("\n===== BANKING SYSTEM =====")
+        print("1. Create Account")
+        print("2. Deposit Money")
+        print("3. Withdraw Money")
+        print("4. Check Balance")
+        print("5. Exit")
+
+        ch = int(input("Enter your choice: "))
+
+        if ch == 1:
+            create_account()
+
+        elif ch == 2:
+            deposit_money()
+
+        elif ch == 3:
+            withdraw_money()
+
+        elif ch == 4:
+            check_balance()
+
+        elif ch == 5:
+            print("Thank you")
+            break
+
+        else:
+            print("Invalid choice")
+
+
+main()
